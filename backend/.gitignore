@@ -29,8 +29,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# prisma generated client
-/src/generated/prisma
-
 # misc
 .DS_Store
+
+/src/generated/prisma
