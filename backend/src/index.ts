@@ -1,16 +1,13 @@
 import { Hono } from "hono";
+import { authRouter } from "./routes/auth";
 
-const app = new Hono();
+const app = new Hono<{
+  Bindings: {
+    DATABASE_URL: string;
+    JWT_SECRET: string;
+  };
+}>();
 
-app.get("/", (c) => {
-  return c.json({
-    message: "mero nam aayush ho",
-  });
-});
-app.post("/api/login", async (c) => {
-  const body = await c.req.json();
-  return c.json({
-    recived: body,
-  });
-});
+app.route("/api/v1/user", authRouter);
+
 export default app;
