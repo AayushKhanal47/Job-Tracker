@@ -1,8 +1,12 @@
-import { Hono } from "hono";
+import { Hono, Context } from "hono";
 import { jwtVerifyMiddleware } from "../middlewares/jwtVerifyMiddleware";
 import { requireRole } from "../middlewares/authMiddleware";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
+
+function getPrisma(c: Context) {
+  return new PrismaClient({ datasourceUrl: c.env.DATABASE_URL }).$extends(withAccelerate());
+}
 
 const jobRouter = new Hono<{
   Bindings: {
@@ -17,13 +21,12 @@ const jobRouter = new Hono<{
   };
 }>();
 
-const prisma = new PrismaClient({}).$extends(withAccelerate());
-
 jobRouter.post(
   "/jobs",
   jwtVerifyMiddleware,
   requireRole("ADMIN"),
   async (c) => {
+    const prisma = getPrisma(c);
     const user = c.get("user");
     const body = await c.req.json();
 
@@ -50,6 +53,7 @@ jobRouter.post(
 );
 
 jobRouter.get("/jobs", async (c) => {
+  const prisma = getPrisma(c);
   const jobs = await prisma.job.findMany({
     where: { status: "OPEN" },
     orderBy: { createdAt: "desc" },
@@ -64,6 +68,7 @@ jobRouter.get("/jobs", async (c) => {
 });
 
 jobRouter.get("/jobs/:id", jwtVerifyMiddleware, async (c) => {
+  const prisma = getPrisma(c);
   const id = c.req.param("id");
 
   const job = await prisma.job.findUnique({
@@ -88,6 +93,7 @@ jobRouter.put(
   jwtVerifyMiddleware,
   requireRole("ADMIN"),
   async (c) => {
+    const prisma = getPrisma(c);
     const id = c.req.param("id");
     const user = c.get("user");
     const body = await c.req.json();
@@ -124,6 +130,7 @@ jobRouter.delete(
   jwtVerifyMiddleware,
   requireRole("ADMIN"),
   async (c) => {
+    const prisma = getPrisma(c);
     const id = c.req.param("id");
     const user = c.get("user");
 
