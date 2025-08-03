@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { jwtVerifyMiddleware } from "./middlewares/jwtVerifyMiddleware";
 import { requireRole } from "./middlewares/roleMiddleware";
-import { authRouter } from "./routes/auth"; // adjust path accordingly
+import { authRouter } from "./routes/auth";
 
 const app = new Hono<{
   Bindings: {
