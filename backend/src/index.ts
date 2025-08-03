@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { jwtVerifyMiddleware } from "./middlewares/jwtVerifyMiddleware";
 import { requireRole } from "./middlewares/roleMiddleware";
 import { authRouter } from "./routes/auth";
+import { jobRouter } from "./routes/jobs";
 
 const app = new Hono<{
   Bindings: {
@@ -32,5 +33,6 @@ app.get("/admin-only", jwtVerifyMiddleware, requireRole(["ADMIN"]), (c) => {
 });
 
 app.route("/api/v1/auth", authRouter);
+app.route("/api/v1", jobRouter);
 
 export default app;

@@ -12,8 +12,8 @@ dist/
 .idea/shelf
 
 # deps
-node_modules/
-backend/wrangler.jsonc
+node_modules
+wrangler.jsonc
 
 # env
 .env
