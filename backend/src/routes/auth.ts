@@ -4,23 +4,30 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 import { sign } from "hono/jwt";
 import bcrypt from "bcryptjs";
 
-export const authRouter = new Hono<{ Bindings: { DATABASE_URL: string; JWT_SECRET: string } }>();
-
-function getPrismaClient(env: { DATABASE_URL: string }) {
-  return new PrismaClient({ datasourceUrl: env.DATABASE_URL }).$extends(withAccelerate());
-}
+export const authRouter = new Hono<{
+  Bindings: {
+    DATABASE_URL: string;
+    JWT_SECRET: string;
+  };
+}>();
 
 authRouter.post("/signup", async (c) => {
-  const prisma = getPrismaClient(c.env);
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env.DATABASE_URL,
+  }).$extends(withAccelerate());
+
   try {
-    const { username, password, role } = await c.req.json();
+    const { username, password } = await c.req.json();
 
     if (!username || !password) {
       c.status(400);
       return c.json({ message: "Username and password are required" });
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email: username } });
+    const existingUser = await prisma.user.findUnique({
+      where: { email: username },
+    });
+
     if (existingUser) {
       c.status(409);
       return c.json({ message: "User already exists" });
@@ -32,21 +39,28 @@ authRouter.post("/signup", async (c) => {
       data: {
         email: username,
         password: hashedPassword,
-        role: role === "ADMIN" ? "ADMIN" : "USER", 
+        role: "USER",
       },
     });
 
-    const token = await sign({ id: user.id, role: user.role }, c.env.JWT_SECRET);
+    const token = await sign(
+      { id: user.id, role: user.role },
+      c.env.JWT_SECRET
+    );
 
     return c.json({ jwt: token });
   } catch (err: any) {
+    console.error("Signup error:", err);
     c.status(500);
-    return c.json({ error: "Signup failed", details: err.message });
+    return c.json({ error: "Something went wrong", details: err?.message });
   }
 });
 
 authRouter.post("/signin", async (c) => {
-  const prisma = getPrismaClient(c.env);
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env.DATABASE_URL,
+  }).$extends(withAccelerate());
+
   try {
     const { username, password } = await c.req.json();
 
@@ -55,23 +69,31 @@ authRouter.post("/signin", async (c) => {
       return c.json({ message: "Username and password are required" });
     }
 
-    const user = await prisma.user.findUnique({ where: { email: username } });
+    const user = await prisma.user.findUnique({
+      where: { email: username },
+    });
+
     if (!user) {
       c.status(403);
       return c.json({ error: "User not found" });
     }
 
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
       c.status(403);
       return c.json({ error: "Invalid password" });
     }
 
-    const token = await sign({ id: user.id, role: user.role }, c.env.JWT_SECRET);
+    const token = await sign(
+      { id: user.id, role: user.role },
+      c.env.JWT_SECRET
+    );
 
     return c.json({ jwt: token });
   } catch (err: any) {
+    console.error("Signin error:", err);
     c.status(500);
-    return c.json({ error: "Signin failed", details: err.message });
+    return c.json({ error: "Something went wrong", details: err?.message });
   }
 });
