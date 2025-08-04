@@ -17,11 +17,16 @@ authRouter.post("/signup", async (c) => {
   }).$extends(withAccelerate());
 
   try {
-    const { username, password } = await c.req.json();
+    const { username, password, role } = await c.req.json();
 
-    if (!username || !password) {
+    if (!username || !password || !role) {
       c.status(400);
-      return c.json({ message: "Username and password are required" });
+      return c.json({ message: "Username, password, and role are required" });
+    }
+
+    if (role !== "USER" && role !== "ADMIN") {
+      c.status(400);
+      return c.json({ message: "Invalid role. Must be USER or ADMIN" });
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -39,7 +44,7 @@ authRouter.post("/signup", async (c) => {
       data: {
         email: username,
         password: hashedPassword,
-        role: "USER",
+        role,
       },
     });
 
