@@ -43,3 +43,128 @@ adminRouter.get(
     }
   }
 );
+
+adminRouter.get(
+  "/seed",
+  jwtVerifyMiddleware,
+  requireRole("ADMIN"),
+  async (c) => {
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+    }).$extends(withAccelerate());
+
+    try {
+      const adminUser = await prisma.user.upsert({
+        where: { email: "admin@example.com" },
+        update: {},
+        create: {
+          email: "admin@example.com",
+          password: "admin123",
+          role: "ADMIN",
+        },
+      });
+
+      const dummyJobs = [
+        {
+          title: "Registered Nurse",
+          description: "Provide patient care and assist doctors in procedures.",
+          location: "Bharatpur, Nepal",
+          salary: 40000,
+          type: "OTHER",
+          status: "OPEN",
+        },
+        {
+          title: "Mechanical Engineer",
+          description: "Design and develop mechanical systems and components.",
+          location: "Pune, India",
+          salary: 60000,
+          type: "ENGINEERING",
+          status: "OPEN",
+        },
+        {
+          title: "Software Developer",
+          description: "Develop web applications using Node.js and React.",
+          location: "San Francisco, USA",
+          salary: 90000,
+          type: "ENGINEERING",
+          status: "OPEN",
+        },
+        {
+          title: "IT Support Specialist",
+          description: "Provide technical assistance to clients and employees.",
+          location: "Bangalore, India",
+          salary: 50000,
+          type: "OTHER",
+          status: "OPEN",
+        },
+        {
+          title: "Graphic Designer",
+          description: "Design creatives for digital and print media.",
+          location: "London, UK",
+          salary: 35000,
+          type: "DESIGN",
+          status: "OPEN",
+        },
+        {
+          title: "Digital Marketing Manager",
+          description: "Lead SEO, SEM, and social media campaigns.",
+          location: "Mumbai, India",
+          salary: 65000,
+          type: "MARKETING",
+          status: "OPEN",
+        },
+        {
+          title: "Civil Engineer",
+          description: "Manage and oversee construction projects.",
+          location: "New Delhi, India",
+          salary: 70000,
+          type: "ENGINEERING",
+          status: "OPEN",
+        },
+        {
+          title: "AI Research Intern",
+          description: "Assist in machine learning and LLM projects.",
+          location: "Kathmandu, Nepal",
+          salary: 30000,
+          type: "OTHER",
+          status: "OPEN",
+        },
+        {
+          title: "Content Writer",
+          description: "Create engaging blog and website content.",
+          location: "New York, USA",
+          salary: 45000,
+          type: "OTHER",
+          status: "OPEN",
+        },
+        {
+          title: "Frontend Developer",
+          description: "Build pixel-perfect UIs using modern frameworks.",
+          location: "Chennai, India",
+          salary: 55000,
+          type: "ENGINEERING",
+          status: "OPEN",
+        },
+      ];
+
+      for (const job of dummyJobs) {
+        await prisma.job.create({
+          data: {
+            ...job,
+            postedById: adminUser.id,
+          },
+        });
+      }
+
+      return c.json({
+        message: "Dummy jobs created with admin as postedBy.",
+      });
+    } catch (error) {
+      console.error("Error seeding jobs:", error);
+      c.status(500);
+      return c.json({ error: "Failed to seed dummy jobs" });
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
+);
