@@ -163,8 +163,45 @@ adminRouter.get(
       console.error("Error seeding jobs:", error);
       c.status(500);
       return c.json({ error: "Failed to seed dummy jobs" });
-    } finally {
-      await prisma.$disconnect();
+    }
+  }
+);
+
+adminRouter.patch(
+  "/jobs/:id/status",
+  jwtVerifyMiddleware,
+  requireRole("ADMIN"),
+  async (c) => {
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+    }).$extends(withAccelerate());
+
+    const jobId = c.req.param("id");
+    const { status } = await c.req.json();
+
+    const allowedStatuses = ["OPEN", "CLOSED"];
+    if (!allowedStatuses.includes(status)) {
+      c.status(400);
+      return c.json({ error: "Invalid job status" });
+    }
+
+    try {
+      const job = await prisma.job.findUnique({ where: { id: jobId } });
+      if (!job) {
+        c.status(404);
+        return c.json({ error: "Job not found" });
+      }
+
+      const updatedJob = await prisma.job.update({
+        where: { id: jobId },
+        data: { status },
+      });
+
+      return c.json({ message: "Job status updated", job: updatedJob });
+    } catch (error) {
+      console.error("Error updating job status:", error);
+      c.status(500);
+      return c.json({ error: "Failed to update job status" });
     }
   }
 );

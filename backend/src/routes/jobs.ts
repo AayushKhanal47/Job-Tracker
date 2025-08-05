@@ -56,8 +56,58 @@ jobRouter.get("/jobs", async (c) => {
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
 
+  const url = new URL(c.req.url);
+
+  const location = url.searchParams.get("location");
+  const type = url.searchParams.get("type");
+  const minSalary = url.searchParams.get("minSalary");
+  const maxSalary = url.searchParams.get("maxSalary");
+  const search = url.searchParams.get("search");
+
+  const where: any = {
+    status: "OPEN",
+  };
+
+  if (location) {
+    where.location = {
+      contains: location,
+      mode: "insensitive",
+    };
+  }
+
+  if (type) {
+    where.type = type;
+  }
+
+  if (minSalary || maxSalary) {
+    where.salary = {};
+    if (minSalary) {
+      where.salary.gte = Number(minSalary);
+    }
+    if (maxSalary) {
+      where.salary.lte = Number(maxSalary);
+    }
+  }
+
+  if (search) {
+    where.OR = [
+      {
+        title: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+      {
+        description: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+    ];
+  }
+
   const jobs = await prisma.job.findMany({
-    where: { status: "OPEN" },
+    where,
     orderBy: { createdAt: "desc" },
     include: {
       postedBy: {
