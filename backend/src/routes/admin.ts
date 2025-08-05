@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { Bindings } from "hono/types";
 import { jwtVerifyMiddleware } from "../middlewares/jwtVerifyMiddleware";
 import { requireRole } from "../middlewares/authMiddleware";
-import { PrismaClient } from "@prisma/client/extension";
+import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 
 export const adminRouter = new Hono<{
