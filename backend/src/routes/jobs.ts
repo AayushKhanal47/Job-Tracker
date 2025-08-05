@@ -3,6 +3,7 @@ import { jwtVerifyMiddleware } from "../middlewares/jwtVerifyMiddleware";
 import { requireRole } from "../middlewares/authMiddleware";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
+import { CreateJobSchema } from "@aayushkhanal47/jobtracker";
 
 const jobRouter = new Hono<{
   Bindings: {
@@ -22,12 +23,16 @@ jobRouter.post(
   jwtVerifyMiddleware,
   requireRole("ADMIN"),
   async (c) => {
+    const body = await c.req.json();
+    const parsed = CreateJobSchema.safeParse(body);
+    if (!parsed.success) {
+      return c.json({ error: parsed.error.format() }, 400);
+    }
     const prisma = new PrismaClient({
       datasourceUrl: c.env.DATABASE_URL,
     }).$extends(withAccelerate());
 
     const user = c.get("user");
-    const body = await c.req.json();
 
     if (!body.title || !body.description || !body.location) {
       c.status(400);

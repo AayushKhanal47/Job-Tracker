@@ -4,6 +4,9 @@ import { jwtVerifyMiddleware } from "../middlewares/jwtVerifyMiddleware";
 import { requireRole } from "../middlewares/authMiddleware";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
+// import { UpdateJobSchema } from "@aayushkhanal47/jobtracker";
+
+import { UpdateJobSchema } from "./../../../common/src/index";
 
 export const adminRouter = new Hono<{
   Bindings: {
@@ -166,24 +169,32 @@ adminRouter.get(
     }
   }
 );
-
 adminRouter.patch(
   "/jobs/:id/status",
   jwtVerifyMiddleware,
   requireRole("ADMIN"),
   async (c) => {
-    const prisma = new PrismaClient({
-      datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate());
+    const body = await c.req.json();
 
-    const jobId = c.req.param("id");
-    const { status } = await c.req.json();
+    const parsed = UpdateJobSchema.safeParse(body);
+    if (!parsed.success) {
+      c.status(400);
+      return c.json({ error: parsed.error.format() });
+    }
+
+    const { status } = parsed.data;
 
     const allowedStatuses = ["OPEN", "CLOSED"];
     if (!allowedStatuses.includes(status)) {
       c.status(400);
       return c.json({ error: "Invalid job status" });
     }
+
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+    }).$extends(withAccelerate());
+
+    const jobId = c.req.param("id");
 
     try {
       const job = await prisma.job.findUnique({ where: { id: jobId } });

@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { sign } from "hono/jwt";
 import bcrypt from "bcryptjs";
+import { SignupSchema, LoginSchema } from "@aayushkhanal47/jobtracker";
 
 export const authRouter = new Hono<{
   Bindings: {
@@ -12,16 +13,22 @@ export const authRouter = new Hono<{
 }>();
 
 authRouter.post("/signup", async (c) => {
+  const body = await c.req.json();
+  const parsed = SignupSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json({ error: parsed.error.format() }, 400);
+  }
+
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
 
   try {
-    const { username, password, role } = await c.req.json();
+    const { email, password, role } = parsed.data;
 
-    if (!username || !password || !role) {
+    if (!email || !password || !role) {
       c.status(400);
-      return c.json({ message: "Username, password, and role are required" });
+      return c.json({ message: "Email, password, and role are required" });
     }
 
     if (role !== "USER" && role !== "ADMIN") {
@@ -30,7 +37,7 @@ authRouter.post("/signup", async (c) => {
     }
 
     const existingUser = await prisma.user.findUnique({
-      where: { email: username },
+      where: { email },
     });
 
     if (existingUser) {
@@ -42,7 +49,7 @@ authRouter.post("/signup", async (c) => {
 
     const user = await prisma.user.create({
       data: {
-        email: username,
+        email,
         password: hashedPassword,
         role,
       },
@@ -62,20 +69,26 @@ authRouter.post("/signup", async (c) => {
 });
 
 authRouter.post("/signin", async (c) => {
+  const body = await c.req.json();
+  const parsed = LoginSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json({ error: parsed.error.format() }, 400);
+  }
+
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
 
   try {
-    const { username, password } = await c.req.json();
+    const { email, password } = parsed.data;
 
-    if (!username || !password) {
+    if (!email || !password) {
       c.status(400);
-      return c.json({ message: "Username and password are required" });
+      return c.json({ message: "Email and password are required" });
     }
 
     const user = await prisma.user.findUnique({
-      where: { email: username },
+      where: { email },
     });
 
     if (!user) {
