@@ -4,9 +4,7 @@ import { jwtVerifyMiddleware } from "../middlewares/jwtVerifyMiddleware";
 import { requireRole } from "../middlewares/authMiddleware";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
-// import { UpdateJobSchema } from "@aayushkhanal47/jobtracker";
-
-import { UpdateJobSchema } from "./../../../common/src/index";
+import { UpdateJobSchema } from "@aayushkhanal47/jobtracker";
 
 export const adminRouter = new Hono<{
   Bindings: {
@@ -213,6 +211,63 @@ adminRouter.patch(
       console.error("Error updating job status:", error);
       c.status(500);
       return c.json({ error: "Failed to update job status" });
+    }
+  }
+);
+adminRouter.get(
+  "/dashboard",
+  jwtVerifyMiddleware,
+  requireRole("ADMIN"),
+  async (c) => {
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+    }).$extends(withAccelerate());
+
+    try {
+      const totalJobs = await prisma.job.count();
+
+      const totalUsers = await prisma.user.count();
+
+      const totalApplications = await prisma.application.count();
+
+      const applicationStats = await prisma.application.groupBy({
+        by: ["status"],
+        _count: true,
+      });
+
+      const topJobsRaw = await prisma.application.groupBy({
+        by: ["jobId"],
+        _count: { jobId: true },
+        orderBy: { _count: { jobId: "desc" } },
+        take: 5,
+      });
+
+      const jobIds = topJobsRaw.map((j) => j.jobId);
+
+      const jobTitles = await prisma.job.findMany({
+        where: { id: { in: jobIds } },
+        select: { id: true, title: true },
+      });
+
+      const topJobs = topJobsRaw.map((j) => {
+        const job = jobTitles.find((job) => job.id === j.jobId);
+        return {
+          jobTitle: job?.title || "Unknown",
+          count: j._count.jobId,
+        };
+      });
+
+      return c.json({
+        totalJobs,
+        totalUsers,
+        totalApplications,
+        applicationStats,
+        topJobs,
+      });
+    } catch (error) {
+      console.error("Dashboard error:", error);
+      c.status(500);
+      return c.json({ error: "Failed to fetch dashboard data" });
     }
   }
 );

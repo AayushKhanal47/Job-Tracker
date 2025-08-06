@@ -70,3 +70,25 @@ applicationRouter.get(
     return c.json({ applications });
   }
 );
+applicationRouter.get(
+  "/dashboard",
+  jwtVerifyMiddleware,
+  requireRole("USER"),
+  async (c) => {
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+    }).$extends(withAccelerate());
+
+    const user = c.get("user");
+
+    const totalApplications = await prisma.application.count({
+      where: { userId: user.id },
+    });
+
+    return c.json({
+      dashboard: {
+        totalApplications,
+      },
+    });
+  }
+);
