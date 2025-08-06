@@ -19,6 +19,7 @@ exports.CreateJobSchema = zod_1.z.object({
     type: zod_1.z.enum(["Full-Time", "Part-Time", "Contract", "Internship"]),
     description: zod_1.z.string().min(10),
     salary: zod_1.z.string().optional(),
+    status: zod_1.z.enum(["OPEN", "CLOSED"]).optional(),
 });
 exports.UpdateJobSchema = exports.CreateJobSchema.partial();
 exports.ApplyJobSchema = zod_1.z.object({

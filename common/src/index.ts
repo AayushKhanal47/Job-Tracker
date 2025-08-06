@@ -20,6 +20,7 @@ export const CreateJobSchema = z.object({
   type: z.enum(["Full-Time", "Part-Time", "Contract", "Internship"]),
   description: z.string().min(10),
   salary: z.string().optional(),
+  status: z.enum(["OPEN", "CLOSED"]).optional(),
 });
 
 export const UpdateJobSchema = CreateJobSchema.partial();

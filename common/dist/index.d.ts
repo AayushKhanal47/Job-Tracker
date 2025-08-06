@@ -27,6 +27,10 @@ export declare const CreateJobSchema: z.ZodObject<{
     }>;
     description: z.ZodString;
     salary: z.ZodOptional<z.ZodString>;
+    status: z.ZodOptional<z.ZodEnum<{
+        OPEN: "OPEN";
+        CLOSED: "CLOSED";
+    }>>;
 }, z.core.$strip>;
 export declare const UpdateJobSchema: z.ZodObject<{
     title: z.ZodOptional<z.ZodString>;
@@ -40,6 +44,10 @@ export declare const UpdateJobSchema: z.ZodObject<{
     }>>;
     description: z.ZodOptional<z.ZodString>;
     salary: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+    status: z.ZodOptional<z.ZodOptional<z.ZodEnum<{
+        OPEN: "OPEN";
+        CLOSED: "CLOSED";
+    }>>>;
 }, z.core.$strip>;
 export declare const ApplyJobSchema: z.ZodObject<{
     jobId: z.ZodString;
