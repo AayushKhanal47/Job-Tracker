@@ -1,13 +1,161 @@
-import React from "react";
+import { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import {
+  User,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  Loader2,
+} from "lucide-react";
 
-const Signup = () => {
+const BACKEND_URL = "http://127.0.0.1:8787/api/v1/auth/signup";
+
+type FormData = {
+  name: string;
+  email: string;
+  password: string;
+  role: "USER" | "ADMIN";
+};
+
+export const Signup = () => {
+  const [form, setForm] = useState<FormData>({
+    name: "",
+    email: "",
+    password: "",
+    role: "USER",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { data } = await axios.post(
+        BACKEND_URL,
+        {
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          role: form.role,
+        },
+        { withCredentials: true }
+      );
+      console.log("Signup successful:", data);
+      navigate("/login");
+    } catch (error: any) {
+      alert(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex justify-center">
-      <div className="flex justify-center">
-        <h2>Create an account</h2>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-400 to-blue-700 px-6">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-lg shadow-lg p-12 w-full max-w-lg space-y-8">
+        <h2 className="text-4xl font-bold text-blue-800 text-center">
+          Create Your Account
+        </h2>
+
+        <div className="relative">
+          <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-600" />
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={form.name}
+            onChange={handleChange}
+            required
+            className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="relative">
+          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-600" />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="relative">
+          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-600" />
+          <input
+            type={showPassword ? "text" : "password"}
+            name="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={handleChange}
+            required
+            className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-600"
+            aria-label={showPassword ? "Hide password" : "Show password"}>
+            {showPassword ? (
+              <EyeOff className="h-5 w-5" />
+            ) : (
+              <Eye className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+
+        <div>
+          <label
+            htmlFor="role"
+            className="block mb-2 font-semibold text-blue-700">
+            Select Role
+          </label>
+          <select
+            id="role"
+            name="role"
+            value={form.role}
+            onChange={handleChange}
+            className="w-full p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="USER">User</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-4 rounded-md transition">
+          {loading ? (
+            <div className="flex justify-center items-center gap-2">
+              <Loader2 className="animate-spin h-5 w-5" /> Signing up...
+            </div>
+          ) : (
+            <>
+              <ShieldCheck className="inline-block mr-2 h-5 w-5" />
+              Sign Up
+            </>
+          )}
+        </button>
+      </form>
     </div>
   );
 };
-
-export default Signup;
