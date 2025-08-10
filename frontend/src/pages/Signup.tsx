@@ -1,20 +1,11 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import {
-  User,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  ShieldCheck,
-  Loader2,
-} from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ShieldCheck, Loader2 } from "lucide-react";
 
 const BACKEND_URL = "http://127.0.0.1:8787/api/v1/auth/signup";
 
 type FormData = {
-  name: string;
   email: string;
   password: string;
   role: "USER" | "ADMIN";
@@ -22,11 +13,11 @@ type FormData = {
 
 export const Signup = () => {
   const [form, setForm] = useState<FormData>({
-    name: "",
     email: "",
     password: "",
     role: "USER",
   });
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -44,11 +35,13 @@ export const Signup = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+
+    console.log("Sending signup data:", form); // <-- Add here
+
     try {
       const { data } = await axios.post(
         BACKEND_URL,
         {
-          name: form.name,
           email: form.email,
           password: form.password,
           role: form.role,
@@ -65,26 +58,13 @@ export const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-400 to-blue-700 px-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-400 to-blue-400 px-6">
       <form
         onSubmit={handleSubmit}
         className="bg-white rounded-lg shadow-lg p-12 w-full max-w-lg space-y-8">
         <h2 className="text-4xl font-bold text-blue-800 text-center">
           Create Your Account
         </h2>
-
-        <div className="relative">
-          <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-600" />
-          <input
-            type="text"
-            name="name"
-            placeholder="Full Name"
-            value={form.name}
-            onChange={handleChange}
-            required
-            className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
 
         <div className="relative">
           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-600" />
@@ -96,6 +76,7 @@ export const Signup = () => {
             onChange={handleChange}
             required
             className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            autoComplete="email"
           />
         </div>
 
@@ -109,6 +90,7 @@ export const Signup = () => {
             onChange={handleChange}
             required
             className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            autoComplete="current-password"
           />
           <button
             type="button"
