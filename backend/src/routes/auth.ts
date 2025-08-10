@@ -61,7 +61,7 @@ authRouter.post("/signup", async (c) => {
       c.env.JWT_SECRET
     );
 
-    return c.json({ jwt: token });
+    return c.json({ jwt: token, role: user.role });
   } catch (err: any) {
     console.error("Signup error:", err);
     c.status(500);
@@ -109,7 +109,7 @@ authRouter.post("/signin", async (c) => {
       c.env.JWT_SECRET
     );
 
-    return c.json({ jwt: token });
+    return c.json({ jwt: token, role: user.role });
   } catch (err: any) {
     console.error("Signin error:", err);
     c.status(500);
