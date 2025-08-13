@@ -3,7 +3,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ShieldCheck, Loader2 } from "lucide-react";
 
-const BACKEND_URL = "http://127.0.0.1:8787/api/v1/auth/signup";
+const BACKEND_URL =
+  "https://backend.aayushkhanal810.workers.dev/api/v1/auth/signup";
 
 type FormData = {
   email: string;
@@ -17,7 +18,6 @@ export const Signup = () => {
     password: "",
     role: "USER",
   });
-
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -26,26 +26,16 @@ export const Signup = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-
-    console.log("Sending signup data:", form); // <-- Add here
-
     try {
       const { data } = await axios.post(
         BACKEND_URL,
-        {
-          email: form.email,
-          password: form.password,
-          role: form.role,
-        },
+        { email: form.email, password: form.password, role: form.role },
         { withCredentials: true }
       );
       console.log("Signup successful:", data);
@@ -75,8 +65,8 @@ export const Signup = () => {
             value={form.email}
             onChange={handleChange}
             required
-            className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             autoComplete="email"
+            className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -89,8 +79,8 @@ export const Signup = () => {
             value={form.password}
             onChange={handleChange}
             required
-            className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             autoComplete="current-password"
+            className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             type="button"

@@ -3,7 +3,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, LogIn, Loader2 } from "lucide-react";
 
-const BACKEND_URL = "http://127.0.0.1:8787/api/v1/auth/signin";
+const BACKEND_URL =
+  "https://backend.aayushkhanal810.workers.dev/api/v1/auth/signin";
 
 type FormData = {
   email: string;
@@ -11,21 +12,14 @@ type FormData = {
 };
 
 export const Login = () => {
-  const [form, setForm] = useState<FormData>({
-    email: "",
-    password: "",
-  });
-
+  const [form, setForm] = useState<FormData>({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -34,16 +28,19 @@ export const Login = () => {
     try {
       const { data } = await axios.post(
         BACKEND_URL,
-        {
-          email: form.email,
-          password: form.password,
-        },
+        { email: form.email, password: form.password },
         { withCredentials: true }
       );
       console.log("Login successful:", data);
 
       localStorage.setItem("jwt", data.jwt);
-      navigate("/dashboard");
+      localStorage.setItem("role", data.role);
+      console.log("Stored role:", localStorage.getItem("role"));
+      if (data.role === "ADMIN") {
+        navigate("/admin");
+      } else {
+        navigate("/user");
+      }
     } catch (error: any) {
       alert(error.response?.data?.message || "Something went wrong");
     } finally {
@@ -69,8 +66,8 @@ export const Login = () => {
             value={form.email}
             onChange={handleChange}
             required
-            className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             autoComplete="email"
+            className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -83,8 +80,8 @@ export const Login = () => {
             value={form.password}
             onChange={handleChange}
             required
-            className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             autoComplete="current-password"
+            className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             type="button"
