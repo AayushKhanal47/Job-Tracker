@@ -14,11 +14,18 @@ exports.LoginSchema = zod_1.z.object({
 });
 exports.CreateJobSchema = zod_1.z.object({
     title: zod_1.z.string().min(3),
-    company: zod_1.z.string().min(2),
-    location: zod_1.z.string(),
-    type: zod_1.z.enum(["Full-Time", "Part-Time", "Contract", "Internship"]),
+    location: zod_1.z.string().min(1),
+    type: zod_1.z.enum([
+        "ENGINEERING",
+        "MARKETING",
+        "SALES",
+        "DESIGN",
+        "HR",
+        "FINANCE",
+        "OTHER",
+    ]),
     description: zod_1.z.string().min(10),
-    salary: zod_1.z.string().optional(),
+    salary: zod_1.z.number().int().positive().optional(),
     status: zod_1.z.enum(["OPEN", "CLOSED"]).optional(),
 });
 exports.UpdateJobSchema = exports.CreateJobSchema.partial();

@@ -1,16 +1,28 @@
 {
   "name": "@aayushkhanal47/jobtracker",
-  "version": "1.0.1",
+  "version": "1.0.4",
+  "description": "Common shared Zod schemas for JobTracker project",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "jobtracker",
+    "zod",
+    "schemas",
+    "common"
+  ],
+  "author": "Aayush Khanal",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "@aayushkhanal47/jobtracker": "^1.0.0",
     "zod": "^4.0.14"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
   }
 }

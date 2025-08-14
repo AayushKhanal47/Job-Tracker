@@ -15,11 +15,18 @@ export const LoginSchema = z.object({
 
 export const CreateJobSchema = z.object({
   title: z.string().min(3),
-  company: z.string().min(2),
-  location: z.string(),
-  type: z.enum(["Full-Time", "Part-Time", "Contract", "Internship"]),
+  location: z.string().min(1),
+  type: z.enum([
+    "ENGINEERING",
+    "MARKETING",
+    "SALES",
+    "DESIGN",
+    "HR",
+    "FINANCE",
+    "OTHER",
+  ]),
   description: z.string().min(10),
-  salary: z.string().optional(),
+  salary: z.number().int().positive().optional(),
   status: z.enum(["OPEN", "CLOSED"]).optional(),
 });
 

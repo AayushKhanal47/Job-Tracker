@@ -17,16 +17,18 @@ export declare const LoginSchema: z.ZodObject<{
 }, z.core.$strip>;
 export declare const CreateJobSchema: z.ZodObject<{
     title: z.ZodString;
-    company: z.ZodString;
     location: z.ZodString;
     type: z.ZodEnum<{
-        "Full-Time": "Full-Time";
-        "Part-Time": "Part-Time";
-        Contract: "Contract";
-        Internship: "Internship";
+        ENGINEERING: "ENGINEERING";
+        MARKETING: "MARKETING";
+        SALES: "SALES";
+        DESIGN: "DESIGN";
+        HR: "HR";
+        FINANCE: "FINANCE";
+        OTHER: "OTHER";
     }>;
     description: z.ZodString;
-    salary: z.ZodOptional<z.ZodString>;
+    salary: z.ZodOptional<z.ZodNumber>;
     status: z.ZodOptional<z.ZodEnum<{
         OPEN: "OPEN";
         CLOSED: "CLOSED";
@@ -34,16 +36,18 @@ export declare const CreateJobSchema: z.ZodObject<{
 }, z.core.$strip>;
 export declare const UpdateJobSchema: z.ZodObject<{
     title: z.ZodOptional<z.ZodString>;
-    company: z.ZodOptional<z.ZodString>;
     location: z.ZodOptional<z.ZodString>;
     type: z.ZodOptional<z.ZodEnum<{
-        "Full-Time": "Full-Time";
-        "Part-Time": "Part-Time";
-        Contract: "Contract";
-        Internship: "Internship";
+        ENGINEERING: "ENGINEERING";
+        MARKETING: "MARKETING";
+        SALES: "SALES";
+        DESIGN: "DESIGN";
+        HR: "HR";
+        FINANCE: "FINANCE";
+        OTHER: "OTHER";
     }>>;
     description: z.ZodOptional<z.ZodString>;
-    salary: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+    salary: z.ZodOptional<z.ZodOptional<z.ZodNumber>>;
     status: z.ZodOptional<z.ZodOptional<z.ZodEnum<{
         OPEN: "OPEN";
         CLOSED: "CLOSED";
