@@ -57,7 +57,7 @@ authRouter.post("/signup", async (c) => {
     });
 
     const token = await sign(
-      { id: user.id, role: user.role },
+      { id: user.id, email: user.email, role: user.role },
       c.env.JWT_SECRET
     );
 

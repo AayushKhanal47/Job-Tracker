@@ -4,6 +4,7 @@ import { requireRole } from "../middlewares/authMiddleware";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { CreateJobSchema } from "@aayushkhanal47/jobtracker";
+import { json } from "./../../node_modules/@aayushkhanal47/jobtracker/node_modules/zod/src/v4/classic/schemas";
 
 const jobRouter = new Hono<{
   Bindings: {
@@ -23,8 +24,14 @@ jobRouter.post(
   jwtVerifyMiddleware,
   requireRole("ADMIN"),
   async (c) => {
-    const body = await c.req.json();
-    const parsed = CreateJobSchema.safeParse(body);
+    const { title, description, location, salary } = c.req.json();
+    const newSalary = Number(salary);
+    const parsed = CreateJobSchema.safeParse({
+      title,
+      description,
+      location,
+      salary: newSalary,
+    });
     if (!parsed.success) {
       return c.json({ error: parsed.error.format() }, 400);
     }
@@ -46,7 +53,7 @@ jobRouter.post(
         title: body.title,
         description: body.description,
         location: body.location,
-        salary: body.salary,
+        salary: Number(body.salary),
         type: body.type || "OTHER",
         postedById: user.id,
       },
