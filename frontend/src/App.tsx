@@ -4,6 +4,7 @@ import { Signup } from "./pages/Signup";
 import { Login } from "./pages/Login";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { UserDashboard } from "./pages/UserDashboard";
+import { AdminApplications } from "./pages/AdminApplications";
 
 const getUserRole = (): "ADMIN" | "USER" | null => {
   return localStorage.getItem("role") as "ADMIN" | "USER" | null;
@@ -22,6 +23,12 @@ function App() {
         path="/admin"
         element={
           role === "ADMIN" ? <AdminDashboard /> : <Navigate to="/login" />
+        }
+      />
+      <Route
+        path="/admin/applications"
+        element={
+          role === "ADMIN" ? <AdminApplications /> : <Navigate to="/login" />
         }
       />
 
