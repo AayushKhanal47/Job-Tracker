@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { Landing } from "./pages/Landing";
 import { Signup } from "./pages/Signup";
@@ -11,7 +12,12 @@ const getUserRole = (): "ADMIN" | "USER" | null => {
 };
 
 function App() {
-  const role = getUserRole();
+  const [role, setRole] = useState<"ADMIN" | "USER" | null>(getUserRole());
+
+  useEffect(() => {
+    const storedRole = getUserRole();
+    setRole(storedRole);
+  }, []);
 
   return (
     <Routes>

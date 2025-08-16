@@ -31,16 +31,14 @@ export const Login = () => {
         { email: form.email, password: form.password },
         { withCredentials: true }
       );
-      console.log("Login successful:", data);
-
       localStorage.setItem("jwt", data.jwt);
       localStorage.setItem("role", data.role);
-      console.log("Stored role:", localStorage.getItem("role"));
       if (data.role === "ADMIN") {
         navigate("/admin");
       } else {
         navigate("/user");
       }
+      window.location.reload();
     } catch (error: any) {
       alert(error.response?.data?.message || "Something went wrong");
     } finally {

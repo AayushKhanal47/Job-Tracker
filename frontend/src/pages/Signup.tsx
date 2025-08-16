@@ -33,12 +33,11 @@ export const Signup = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await axios.post(
+      await axios.post(
         BACKEND_URL,
         { email: form.email, password: form.password, role: form.role },
         { withCredentials: true }
       );
-      console.log("Signup successful:", data);
       navigate("/login");
     } catch (error: any) {
       alert(error.response?.data?.message || "Something went wrong");
