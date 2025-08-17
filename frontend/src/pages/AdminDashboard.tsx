@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { Trash2 } from "lucide-react";
 
@@ -14,6 +14,13 @@ type Job = {
   status: "OPEN" | "CLOSED";
 };
 
+type Application = {
+  id: string;
+  status: string;
+  user: { email: string };
+  job: { title: string };
+};
+
 type DashboardStats = {
   totalJobs: number;
   totalUsers: number;
@@ -24,6 +31,9 @@ export function AdminDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(false);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -73,16 +83,20 @@ export function AdminDashboard() {
   const handleCreateJob = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const payload = {
-        title: form.title.trim(),
-        description: form.description.trim(),
-        location: form.location.trim(),
-        type: form.type,
-        salary: Number(form.salary),
-      };
-      await axios.post(`${BACKEND_URL}/jobs`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.post(
+        `${BACKEND_URL}/jobs`,
+        {
+          title: form.title.trim(),
+          description: form.description.trim(),
+          location: form.location.trim(),
+          salary: Number(form.salary),
+          type: form.type,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert("Job created");
       setForm({
         title: "",
         description: "",
@@ -93,40 +107,65 @@ export function AdminDashboard() {
       fetchJobs();
       fetchDashboard();
     } catch (err) {
-      console.error("Failed to create job:", err);
-      alert("Failed to create job. Ensure all fields are valid.");
+      alert("Error creating job");
     }
   };
 
   const handleDeleteJob = async (jobId: string) => {
     if (!confirm("Delete this job?")) return;
-    try {
-      await axios.delete(`${BACKEND_URL}/jobs/${jobId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchJobs();
-      fetchDashboard();
-    } catch (err) {
-      console.error("Failed to delete job:", err);
-      alert("Failed to delete job");
-    }
+    await axios.delete(`${BACKEND_URL}/jobs/${jobId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    fetchJobs();
+    fetchDashboard();
   };
 
   const handleStatusChange = async (
     jobId: string,
     status: "OPEN" | "CLOSED"
   ) => {
+    await axios.patch(
+      `${BACKEND_URL}/admin/jobs/${jobId}/status`,
+      { status },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    fetchJobs();
+    fetchDashboard();
+  };
+
+  const handleViewApplications = async (jobId: string) => {
+    try {
+      const res = await axios.get(
+        `${BACKEND_URL}/admin/applications/${jobId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("Applications response => ", res.data);
+      setApplications(res.data.applications || []);
+      setSelectedJobId(jobId);
+    } catch (err) {
+      console.error("Failed to fetch applications", err);
+    }
+  };
+
+  const handleApplicationStatus = async (
+    applicationId: string,
+    newStatus: "ACCEPTED" | "REJECTED"
+  ) => {
     try {
       await axios.patch(
-        `${BACKEND_URL}/admin/jobs/${jobId}/status`,
-        { status },
+        `${BACKEND_URL}/admin/applications/${applicationId}`,
+        { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      fetchJobs();
-      fetchDashboard();
+      setApplications((prev) =>
+        prev.map((app) =>
+          app.id === applicationId ? { ...app, status: newStatus } : app
+        )
+      );
     } catch (err) {
-      console.error("Failed to update status:", err);
-      alert("Failed to update status");
+      console.error("Failed to update application", err);
     }
   };
 
@@ -159,7 +198,7 @@ export function AdminDashboard() {
         </div>
       )}
 
-      <div className="max-w-5xl mx-auto bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl mb-12 space-y-5">
+      <div className="max-w-5xl mx-auto bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl space-y-5 mb-12">
         <h2 className="text-2xl font-bold mb-2 text-center text-gray-800">
           Create a Job
         </h2>
@@ -207,13 +246,12 @@ export function AdminDashboard() {
             value={form.salary}
             onChange={handleChange}
             placeholder="Salary"
-            min={0}
             className="w-full p-3 border border-gray-200 rounded-lg"
           />
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl font-medium">
+            className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium">
             {loading ? "Creating..." : "Create Job"}
           </button>
         </form>
@@ -225,13 +263,18 @@ export function AdminDashboard() {
           {jobs.map((job) => (
             <div
               key={job.id}
-              className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-white/50">
-              <h3 className="text-xl font-bold text-gray-800 mb-1">
+              className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl">
+              <h3 className="text-xl font-bold mb-1 text-gray-800">
                 {job.title}
               </h3>
-              <p className="text-gray-700 mb-2">{job.location}</p>
-              <p className="text-gray-700 mb-4">{job.description}</p>
-              <div className="flex gap-3 items-center">
+              <p className="text-gray-600">{job.location}</p>
+              <p className="text-gray-700 text-sm my-2">{job.description}</p>
+              <button
+                onClick={() => handleViewApplications(job.id)}
+                className="text-blue-600 underline text-sm mb-2">
+                View Applications
+              </button>
+              <div className="flex gap-3 items-center mt-3">
                 <select
                   value={job.status}
                   onChange={(e) =>
@@ -246,7 +289,7 @@ export function AdminDashboard() {
                 </select>
                 <button
                   onClick={() => handleDeleteJob(job.id)}
-                  className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+                  className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -254,6 +297,42 @@ export function AdminDashboard() {
           ))}
         </div>
       </div>
+
+      {selectedJobId && (
+        <div className="mt-10 bg-white p-6 rounded-xl max-w-4xl mx-auto">
+          <h3 className="text-2xl font-bold mb-4">
+            Applications for Job ID: {selectedJobId}
+          </h3>
+          {applications.length === 0 ? (
+            <p>No applications yet.</p>
+          ) : (
+            applications.map((app) => (
+              <div
+                key={app.id}
+                className="border p-4 rounded-lg mb-3 bg-gray-50">
+                <p>
+                  <strong>User:</strong> {app.user?.email}
+                </p>
+                <p>
+                  <strong>Status:</strong> {app.status}
+                </p>
+                <div className="mt-2 flex gap-3">
+                  <button
+                    onClick={() => handleApplicationStatus(app.id, "ACCEPTED")}
+                    className="bg-green-500 text-white px-3 py-1 rounded">
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleApplicationStatus(app.id, "REJECTED")}
+                    className="bg-red-500 text-white px-3 py-1 rounded">
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
