@@ -7,12 +7,11 @@ const BACKEND_URL = "https://backend.aayushkhanal810.workers.dev/api/v1";
 type Job = {
   id: string;
   title: string;
-  company: string;
   description: string;
   location: string;
   type: string;
-  salary: number;
-  status: string;
+  salary?: number;
+  status: "OPEN" | "CLOSED";
 };
 
 type DashboardStats = {
@@ -25,10 +24,8 @@ export function AdminDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(false);
-
   const [form, setForm] = useState({
     title: "",
-    company: "",
     description: "",
     location: "",
     type: "ENGINEERING",
@@ -38,26 +35,24 @@ export function AdminDashboard() {
   const token = localStorage.getItem("jwt");
 
   const fetchDashboard = async () => {
-    setLoading(true);
     try {
       const res = await axios.get(`${BACKEND_URL}/admin/dashboard`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setStats(res.data);
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats:", err);
     }
   };
 
   const fetchJobs = async () => {
-    setLoading(true);
     try {
       const res = await axios.get(`${BACKEND_URL}/jobs`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setJobs(res.data.jobs || []);
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error("Failed to fetch jobs:", err);
     }
   };
 
@@ -78,17 +73,18 @@ export function AdminDashboard() {
   const handleCreateJob = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      setLoading(true);
-      const userId = localStorage.getItem("userId");
-      await axios.post(
-        `${BACKEND_URL}/jobs`,
-        { ...form, salary: Number(form.salary), postedById: userId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert("Job created successfully");
+      const payload = {
+        title: form.title.trim(),
+        description: form.description.trim(),
+        location: form.location.trim(),
+        type: form.type,
+        salary: Number(form.salary),
+      };
+      await axios.post(`${BACKEND_URL}/jobs`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setForm({
         title: "",
-        company: "",
         description: "",
         location: "",
         type: "ENGINEERING",
@@ -96,33 +92,42 @@ export function AdminDashboard() {
       });
       fetchJobs();
       fetchDashboard();
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error("Failed to create job:", err);
+      alert("Failed to create job. Ensure all fields are valid.");
     }
   };
 
   const handleDeleteJob = async (jobId: string) => {
     if (!confirm("Delete this job?")) return;
-    setLoading(true);
     try {
       await axios.delete(`${BACKEND_URL}/jobs/${jobId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchJobs();
       fetchDashboard();
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error("Failed to delete job:", err);
+      alert("Failed to delete job");
     }
   };
 
-  const handleStatusChange = async (jobId: string, status: string) => {
-    await axios.patch(
-      `${BACKEND_URL}/admin/jobs/${jobId}/status`,
-      { status },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    fetchJobs();
-    fetchDashboard();
+  const handleStatusChange = async (
+    jobId: string,
+    status: "OPEN" | "CLOSED"
+  ) => {
+    try {
+      await axios.patch(
+        `${BACKEND_URL}/admin/jobs/${jobId}/status`,
+        { status },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchJobs();
+      fetchDashboard();
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      alert("Failed to update status");
+    }
   };
 
   return (
@@ -167,14 +172,6 @@ export function AdminDashboard() {
             required
             className="w-full p-3 border border-gray-200 rounded-lg"
           />
-          <input
-            name="company"
-            value={form.company}
-            onChange={handleChange}
-            placeholder="Company Name"
-            required
-            className="w-full p-3 border border-gray-200 rounded-lg"
-          />
           <textarea
             name="description"
             value={form.description}
@@ -210,7 +207,7 @@ export function AdminDashboard() {
             value={form.salary}
             onChange={handleChange}
             placeholder="Salary"
-            required
+            min={0}
             className="w-full p-3 border border-gray-200 rounded-lg"
           />
           <button
@@ -232,14 +229,17 @@ export function AdminDashboard() {
               <h3 className="text-xl font-bold text-gray-800 mb-1">
                 {job.title}
               </h3>
-              <p className="text-gray-600 mb-2">
-                {job.company} • {job.location}
-              </p>
+              <p className="text-gray-700 mb-2">{job.location}</p>
               <p className="text-gray-700 mb-4">{job.description}</p>
               <div className="flex gap-3 items-center">
                 <select
                   value={job.status}
-                  onChange={(e) => handleStatusChange(job.id, e.target.value)}
+                  onChange={(e) =>
+                    handleStatusChange(
+                      job.id,
+                      e.target.value as "OPEN" | "CLOSED"
+                    )
+                  }
                   className="flex-1 p-2 border rounded-lg bg-white">
                   <option value="OPEN">Open</option>
                   <option value="CLOSED">Closed</option>

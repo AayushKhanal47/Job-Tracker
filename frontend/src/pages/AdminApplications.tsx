@@ -17,6 +17,7 @@ export function AdminApplications({ jobId }: { jobId: string }) {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+
         setApplications(res.data.applications || []);
       } catch (err) {
         console.error(err);
@@ -26,7 +27,28 @@ export function AdminApplications({ jobId }: { jobId: string }) {
     };
 
     fetchApplications();
-  }, []);
+  }, [jobId]);
+  const updateStatus = async (applicationId: string, newStatus: string) => {
+    try {
+      const token = localStorage.getItem("jwt");
+
+      await axios.patch(
+        `${BACKEND_URL}/admin/applications/${applicationId}`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setApplications((prev) =>
+        prev.map((app) =>
+          app.id === applicationId ? { ...app, status: newStatus } : app
+        )
+      );
+    } catch (err) {
+      console.error("Failed to update status: ", err);
+      alert("Error updating application status");
+    }
+  };
+
   return (
     <div>
       <h1>Admin Applications</h1>
@@ -54,7 +76,7 @@ export function AdminApplications({ jobId }: { jobId: string }) {
                 <button onClick={() => updateStatus(app.id, "ACCEPTED")}>
                   Accept
                 </button>
-                <button onClick={() => updateStauts(app.id, "REJECTED")}>
+                <button onClick={() => updateStatus(app.id, "REJECTED")}>
                   Reject
                 </button>
               </div>
