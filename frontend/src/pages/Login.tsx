@@ -31,15 +31,14 @@ export const Login = () => {
       });
       console.log("Login successful:", data);
 
-      // Ensure admin role is stored correctly
       let role = data.role;
       if (data.email === "your-admin-email@example.com") {
-        role = "ADMIN"; // force admin role if this is your admin email
+        role = "ADMIN";
       }
 
       localStorage.setItem("jwt", data.jwt);
       localStorage.setItem("role", role);
-      localStorage.setItem("userId", data.userId); // important for job creation
+      localStorage.setItem("userId", data.userId);
 
       console.log("Stored role:", role);
 
