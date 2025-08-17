@@ -27,12 +27,8 @@ adminRouter.get(
       const applications = await prisma.application.findMany({
         where: { jobId },
         include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-            },
-          },
+          user: { select: { id: true, email: true } },
+          job: { select: { id: true, title: true } },
         },
       });
 

@@ -30,6 +30,7 @@ jobRouter.post(
       title,
       description,
       location,
+      
       salary: newSalary,
     });
     if (!parsed.success) {
