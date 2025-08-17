@@ -26,13 +26,17 @@ export const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await axios.post(
-        BACKEND_URL,
-        { email: form.email, password: form.password },
-        { withCredentials: true }
-      );
+      const { data } = await axios.post(BACKEND_URL, form, {
+        withCredentials: true,
+      });
+      console.log("Login successful:", data);
+
       localStorage.setItem("jwt", data.jwt);
       localStorage.setItem("role", data.role);
+
+      console.log("Stored jwt:", localStorage.getItem("jwt"));
+      console.log("Stored role:", localStorage.getItem("role"));
+
       if (data.role === "ADMIN") {
         navigate("/admin");
       } else {
@@ -54,38 +58,33 @@ export const Login = () => {
         <h2 className="text-4xl font-bold text-blue-800 text-center">
           Login to Your Account
         </h2>
-
         <div className="relative">
           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-600" />
           <input
-            type="email"
             name="email"
+            type="email"
             placeholder="Email"
             value={form.email}
             onChange={handleChange}
             required
-            autoComplete="email"
             className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-
         <div className="relative">
           <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-600" />
           <input
-            type={showPassword ? "text" : "password"}
             name="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Password"
             value={form.password}
             onChange={handleChange}
             required
-            autoComplete="current-password"
             className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-600"
-            aria-label={showPassword ? "Hide password" : "Show password"}>
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-600">
             {showPassword ? (
               <EyeOff className="h-5 w-5" />
             ) : (
@@ -93,10 +92,9 @@ export const Login = () => {
             )}
           </button>
         </div>
-
         <button
-          type="submit"
           disabled={loading}
+          type="submit"
           className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-4 rounded-md transition">
           {loading ? (
             <div className="flex justify-center items-center gap-2">

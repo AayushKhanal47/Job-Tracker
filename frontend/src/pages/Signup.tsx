@@ -33,11 +33,10 @@ export const Signup = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post(
-        BACKEND_URL,
-        { email: form.email, password: form.password, role: form.role },
-        { withCredentials: true }
-      );
+      const { data } = await axios.post(BACKEND_URL, form, {
+        withCredentials: true,
+      });
+      console.log("Signup result:", data);
       navigate("/login");
     } catch (error: any) {
       alert(error.response?.data?.message || "Something went wrong");
@@ -54,38 +53,33 @@ export const Signup = () => {
         <h2 className="text-4xl font-bold text-blue-800 text-center">
           Create Your Account
         </h2>
-
         <div className="relative">
           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-600" />
           <input
-            type="email"
             name="email"
-            placeholder="Email"
+            type="email"
             value={form.email}
             onChange={handleChange}
             required
-            autoComplete="email"
             className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Email"
           />
         </div>
-
         <div className="relative">
           <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-600" />
           <input
-            type={showPassword ? "text" : "password"}
             name="password"
-            placeholder="Password"
+            type={showPassword ? "text" : "password"}
             value={form.password}
             onChange={handleChange}
             required
-            autoComplete="current-password"
             className="w-full pl-12 p-4 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Password"
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-600"
-            aria-label={showPassword ? "Hide password" : "Show password"}>
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-600">
             {showPassword ? (
               <EyeOff className="h-5 w-5" />
             ) : (
@@ -93,7 +87,6 @@ export const Signup = () => {
             )}
           </button>
         </div>
-
         <div>
           <label
             htmlFor="role"
@@ -101,7 +94,6 @@ export const Signup = () => {
             Select Role
           </label>
           <select
-            id="role"
             name="role"
             value={form.role}
             onChange={handleChange}
@@ -110,11 +102,10 @@ export const Signup = () => {
             <option value="ADMIN">Admin</option>
           </select>
         </div>
-
         <button
-          type="submit"
           disabled={loading}
-          className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-4 rounded-md transition">
+          className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-4 rounded-md transition"
+          type="submit">
           {loading ? (
             <div className="flex justify-center items-center gap-2">
               <Loader2 className="animate-spin h-5 w-5" /> Signing up...
