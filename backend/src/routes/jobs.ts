@@ -149,6 +149,52 @@ jobRouter.put(
   }
 );
 
+jobRouter.patch("/admin/applications/:id", async (c) => {
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env.DATABASE_URL,
+  }).$extends(withAccelerate());
+
+  const { id } = c.req.param();
+  const { status } = await c.req.json();
+
+  if (!["ACCEPTED", "REJECTED"].includes(status)) {
+    return c.json({ error: "Invalid status" }, 400);
+  }
+
+  try {
+    const updatedApplication = await prisma.application.update({
+      where: { id },
+      data: { status },
+    });
+    return c.json(updatedApplication);
+  } catch (err) {
+    return c.json({ error: "Application not found" }, 404);
+  }
+});
+
+jobRouter.get(
+  "/admin/applications/:jobId",
+  jwtVerifyMiddleware,
+  requireRole("ADMIN"),
+  async (c) => {
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+    }).$extends(withAccelerate());
+
+    const { jobId } = c.req.param();
+
+    const applications = await prisma.application.findMany({
+      where: { jobId },
+      include: {
+        user: { select: { email: true } },
+        job: { select: { title: true } },
+      },
+    });
+
+    return c.json({ applications });
+  }
+);
+
 jobRouter.delete(
   "/jobs/:id",
   jwtVerifyMiddleware,

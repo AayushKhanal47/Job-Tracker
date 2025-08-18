@@ -1,8 +1,10 @@
 import { Context } from "hono";
 
-export const requireRole = (allowedRoles: ("USER" | "ADMIN")[]) => {
+export const requireRole = (allowedRoles: "USER" | "ADMIN") => {
   return async (c: Context, next: () => Promise<void>) => {
-    const user = c.get("user") as { id: string; email: string; role: string } | undefined;
+    const user = c.get("user") as
+      | { id: string; email: string; role: string }
+      | undefined;
 
     if (!user) {
       c.status(401);
