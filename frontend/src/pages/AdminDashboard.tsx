@@ -30,7 +30,7 @@ type DashboardStats = {
 export function AdminDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
